@@ -86,7 +86,9 @@ struct Index {
   receive() {
     Stack({alignContent:Alignment.TopEnd}) {
       Column({space:12}) {
-        this.glyph($r('sys.symbol.square_and_arrow_down'),80)
+        Image($r('app.media.hsend_mark'))
+          .width(80).height(80).objectFit(ImageFit.Contain).fillColor(this.accent())
+          .accessibilityLevel('no')
         Text(this.alias).fontSize(44).maxLines(2).textAlign(TextAlign.Center).fontColor(this.ink())
         Text(this.online ? '#'+this.address.split('.').pop() : '离线').fontColor(this.ink()).fontSize(22)
       }.width('100%').height('100%').justifyContent(FlexAlign.Center).padding(20)
