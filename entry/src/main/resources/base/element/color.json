@@ -1,0 +1,8 @@
+{
+  "color": [
+    { "name": "background", "value": "#FFFFFF" },
+    { "name": "ink", "value": "#181820" },
+    { "name": "accent", "value": "#4343CA" },
+    { "name": "surface", "value": "#F7F7FA" }
+  ]
+}

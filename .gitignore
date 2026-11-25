@@ -1,0 +1,11 @@
+.superpowers/
+.hvigor/
+.idea/
+**/oh_modules/
+**/build/
+**/.test/
+local.properties
+*.p12
+*.p7b
+*.csr
+*.cer
