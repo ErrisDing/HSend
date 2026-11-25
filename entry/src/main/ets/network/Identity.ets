@@ -1,5 +1,4 @@
 import { cryptoFramework } from '@kit.CryptoArchitectureKit';
-import { cert } from '@kit.DeviceCertificateKit';
 import { util } from '@kit.ArkTS';
 import { preferences } from '@kit.ArkData';
 import { common } from '@kit.AbilityKit';
@@ -42,12 +41,6 @@ export async function fingerprint(bytes: Uint8Array): Promise<string> {
   const digest = cryptoFramework.createMd('SHA256');
   await digest.update({data: bytes});
   return hexFingerprint((await digest.digest()).data);
-}
-
-export async function peerFingerprint(blob: cert.EncodingBlob): Promise<string> {
-  const parsed = await cert.createX509Cert(blob);
-  const encoded = await parsed.getEncoded();
-  return fingerprint(encoded.data);
 }
 
 async function createIdentity(): Promise<DeviceIdentity> {

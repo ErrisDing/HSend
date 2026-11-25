@@ -16,7 +16,8 @@ export interface HttpHead {
 export interface HttpWire {
   send(data: ArrayBuffer): Promise<void>;
   close(): Promise<void>;
-  listen(data: (part: Uint8Array) => void, end: () => void, error: () => void): void;
+  read?(): Promise<Uint8Array | null>;
+  listen?(data: (part: Uint8Array) => void, end: () => void, error: () => void): void;
 }
 
 class SocketWire implements HttpWire {
@@ -36,6 +37,7 @@ export class HttpConnection {
   private queue: Uint8Array[] = [];
   private available: number = 0;
   private ended: boolean = false;
+  private reading: boolean = false;
   private closing?: Promise<void>;
   private wake: () => void = () => {};
   onEnd: () => void = () => {};
@@ -46,13 +48,28 @@ export class HttpConnection {
 
   constructor(wire: HttpWire) {
     this.wire = wire;
-    wire.listen((part: Uint8Array) => {
+    if (wire.read) { this.prefetch(); return; }
+    wire.listen?.((part: Uint8Array) => {
       if (this.ended || part.byteLength === 0) return;
       this.available += part.byteLength;
       if (this.available > 16 * 1024 * 1024) { this.close(); return; }
       this.queue.push(part);
       this.wake();
     }, () => this.finish(), () => this.close());
+  }
+
+  private async prefetch(): Promise<void> {
+    if (!this.wire.read || this.reading || this.ended || this.available > 0) return;
+    this.reading = true;
+    try {
+      const part = await this.wire.read();
+      if (this.ended) return;
+      if (!part || !part.byteLength) { this.finish(); return; }
+      this.queue.push(part);
+      this.available = part.byteLength;
+      this.wake();
+    } catch (_) { this.close(); }
+    finally { this.reading = false; }
   }
 
   private finish(): void {
@@ -86,6 +103,7 @@ export class HttpConnection {
     if (n === first.length) this.queue.shift();
     else this.queue[0] = first.subarray(n);
     this.available -= n;
+    if (this.available === 0 && this.wire.read) this.prefetch();
     return first.subarray(0,n);
   }
 

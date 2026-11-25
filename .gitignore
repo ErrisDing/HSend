@@ -3,6 +3,7 @@
 .idea/
 **/oh_modules/
 **/build/
+**/.cxx/
 **/.test/
 local.properties
 *.p12

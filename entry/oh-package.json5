@@ -1,5 +1,7 @@
 {
   "name": "entry",
   "version": "0.1.0",
-  "dependencies": {}
+  "dependencies": {
+    "libhsend_tls.so": "file:./src/main/cpp/types/libhsend_tls"
+  }
 }

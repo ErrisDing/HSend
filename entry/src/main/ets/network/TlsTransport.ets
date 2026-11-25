@@ -1,10 +1,10 @@
 import { socket } from '@kit.NetworkKit';
 import { Peer } from '../model/Protocol';
-import { DeviceIdentity, fingerprint, pem } from './Identity';
+import { DeviceIdentity, fingerprint } from './Identity';
 import { cert } from '@kit.DeviceCertificateKit';
 import { HttpConnection } from './HttpConnection';
 
-export async function connectPeer(peer: Peer, identity: DeviceIdentity, remember?: (certificate: string) => void): Promise<HttpConnection> {
+export async function connectPeer(peer: Peer, identity: DeviceIdentity): Promise<HttpConnection> {
   const wire = socket.constructTLSSocketInstance();
   const timeout = setTimeout(() => { wire.close().catch(() => {}); },10000);
   try {
@@ -19,7 +19,6 @@ export async function connectPeer(peer: Peer, identity: DeviceIdentity, remember
     if (await fingerprint(bytes) !== peer.info.fingerprint.toUpperCase()) {
       throw new Error('设备证书指纹不匹配');
     }
-    if (remember) remember(pem('CERTIFICATE',bytes));
     return HttpConnection.fromSocket(wire);
   } catch (e) { await wire.close().catch(() => {}); throw e as Error; }
   finally { clearTimeout(timeout); }

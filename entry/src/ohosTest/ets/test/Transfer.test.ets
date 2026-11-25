@@ -28,6 +28,19 @@ class MemoryFile implements FileWriter {
   discard(): void { this.discarded = true; }
 }
 
+class PullWire implements HttpWire {
+  reads: number = 0;
+  async read(): Promise<Uint8Array | null> {
+    this.reads++;
+    if (this.reads === 1) return encode('4\r\nab');
+    if (this.reads === 2) return encode('cd\r\n3\r\nef');
+    if (this.reads === 3) return encode('g\r\n0\r\n\r\n');
+    return null;
+  }
+  async send(data: ArrayBuffer): Promise<void> {}
+  async close(): Promise<void> {}
+}
+
 class Store implements ReceiveStore {
   file: MemoryFile = new MemoryFile();
   full: boolean = false;
@@ -94,6 +107,20 @@ export default function transferTests() {
         wire.feed(new Uint8Array([byte]));
       }
       expect(await http.text(await http.head())).assertEqual('abc');
+    });
+    it('pull_transport_buffers_one_record_and_preserves_chunk_order',0,async () => {
+      const wire = new PullWire();
+      const http = new HttpConnection(wire);
+      await new Promise<void>((resolve) => { setTimeout(resolve, 1); });
+      expect(wire.reads).assertEqual(1);
+      const headers = new Map<string,string>();
+      headers.set('transfer-encoding','chunked');
+      expect(await http.text({line:'POST',headers})).assertEqual('abcdefg');
+      let ended = false;
+      try { await http.take(1); } catch (_) { ended = true; }
+      expect(ended).assertTrue();
+      expect(wire.reads).assertEqual(4);
+      await http.close();
     });
     it('ambiguous_length_is_rejected_before_writing',0,async () => {
       const wire = new MemoryWire();

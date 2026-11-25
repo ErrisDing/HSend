@@ -50,7 +50,6 @@ export class Transfers {
   private files: ReceiveStore;
   private info: () => DeviceInfo;
   private update: () => void;
-  onIdle: () => void = () => {};
 
   constructor(identity: DeviceIdentity,files: ReceiveStore,info: () => DeviceInfo, update: () => void) {
     this.identity = identity;
@@ -77,7 +76,6 @@ export class Transfers {
     this.view.active = false;
     this.view.confirming = false;
     this.update();
-    this.onIdle();
   }
 
   answerReceive(accept: boolean): void { this.incoming?.decide(accept); }
