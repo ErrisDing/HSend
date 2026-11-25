@@ -83,16 +83,16 @@ struct Index {
   }
   @Builder
   receive() {
-    Stack({alignContent:Alignment.Center}) {
+    Stack({alignContent:Alignment.TopEnd}) {
       Column({space:12}) {
         this.glyph($r('sys.symbol.square_and_arrow_down'),80)
         Text(this.alias).fontSize(44).maxLines(2).textAlign(TextAlign.Center).fontColor(this.ink())
         Text(this.online ? '#'+this.address.split('.').pop() : '离线').fontColor(this.ink()).fontSize(22)
-      }.padding(20)
+      }.width('100%').height('100%').justifyContent(FlexAlign.Center).padding(20)
       Row({space:8}) {
         Button() { this.glyph($r('sys.symbol.clock'),22) }.onClick(() => this.history()).accessibilityText('接收记录').backgroundColor(this.surface())
         Button() { this.glyph($r('sys.symbol.info_circle'),22) }.onClick(() => { this.detail='info'; }).accessibilityText('连接信息').backgroundColor(this.surface())
-      }.align(Alignment.TopEnd).padding(16)
+      }.padding(16)
     }.width('100%').height('100%')
   }
   @Builder
