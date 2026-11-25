@@ -2,6 +2,7 @@ import { appSession } from '../app/AppSession';
 import { layoutMode, Peer } from '../model/Protocol';
 import { Receipt, SelectedFile } from '../storage/ReceivedFiles';
 import { FileProgress, TransferView } from '../transfer/Transfers';
+import { formatFileProgress, formatFileSize } from './FileSize';
 
 @Entry
 @Component
@@ -105,7 +106,10 @@ struct Index {
         }.backgroundColor(this.surface()).onClick(() => this.run(appSession.pick()))
         ForEach(this.chosen,(f: SelectedFile) => {
           Row() {
-            Text(f.info.fileName).layoutWeight(1).fontColor(this.ink())
+            Column({space:2}) {
+              Text(f.info.fileName).fontColor(this.ink())
+              Text(formatFileSize(f.info.size)).fontSize(12).fontColor(this.ink())
+            }.layoutWeight(1).alignItems(HorizontalAlign.Start)
             Button('移除').backgroundColor(this.surface()).fontColor(this.accent()).onClick(() => {
               appSession.selected=appSession.selected.filter((s: SelectedFile) => s.uri !== f.uri); appSession.notify();
             })
@@ -155,7 +159,7 @@ struct Index {
           Text(this.view.peer).fontColor(this.ink())
           if (!this.view.confirming) {
             Progress({value:this.view.done,total:Math.max(1,this.view.total)}).color(this.accent())
-            Text(this.view.done+' / '+this.view.total+' B').fontColor(this.ink())
+            Text(formatFileProgress(this.view.done,this.view.total)).fontColor(this.ink())
           }
           if (this.view.confirming) {
             Row({space:10}) { Button('拒绝').backgroundColor(this.surface()).fontColor(this.ink()).onClick(() => appSession.transfers?.answerReceive(false))
@@ -167,15 +171,17 @@ struct Index {
           }
           ForEach(this.view.items,(item: FileProgress) => {
             Text(item.name).fontColor(this.ink())
-            if (!this.view.confirming && this.view.items.length > 1) {
-              Text(item.done + ' / ' + item.size + ' B').fontSize(12).fontColor(this.ink())
+            if (this.view.confirming) {
+              Text(formatFileSize(item.size)).fontSize(12).fontColor(this.ink())
+            } else if (this.view.items.length > 1) {
+              Text(formatFileProgress(item.done,item.size)).fontSize(12).fontColor(this.ink())
             }
           },(item: FileProgress) => item.id + '/' + item.done)
         } else if (this.detail === 'history') {
           Text('接收记录').fontSize(24).fontColor(this.ink())
           if (!this.receipts.length) { Text('暂无已收文件').fontColor(this.ink()) }
           ForEach(this.receipts,(r: Receipt) => {
-            Row() { Text(r.name+' · '+r.size+' B').layoutWeight(1).fontColor(this.ink())
+            Row() { Text(r.name+' · '+formatFileSize(r.size)).layoutWeight(1).fontColor(this.ink())
               Button('导出').backgroundColor(this.surface()).fontColor(this.accent()).onClick(() => this.run(appSession.exportFile(r))) }
           },(r: Receipt) => r.id)
         } else {
